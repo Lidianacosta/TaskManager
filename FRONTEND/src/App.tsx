@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Router, Route } from "wouter";
+import { Router, Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -25,9 +25,11 @@ function AppRoutes() {
   if (!isAuthenticated) {
     return (
       <Router>
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="*" component={Login} />
+        <Switch>
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <Route path="*" component={Login} />
+        </Switch>
       </Router>
     );
   }
@@ -35,11 +37,13 @@ function AppRoutes() {
   return (
     <Router>
       <AppLayout>
-        <Route path="/" component={Dashboard} />
-        <Route path="/tasks" component={Tasks} />
-        <Route path="/categories" component={Categories} />
-        <Route path="/bugs" component={Bugs} />
-        <Route path="*" component={NotFound} />
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/tasks" component={Tasks} />
+          <Route path="/categories" component={Categories} />
+          <Route path="/bugs" component={Bugs} />
+          <Route path="*" component={NotFound} />
+        </Switch>
       </AppLayout>
     </Router>
   );
