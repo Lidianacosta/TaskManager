@@ -4,7 +4,21 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "../README.md"
 requires-python = ">=3.12"
-dependencies = ["fastapi[standard]>=0.136.3", "sqlmodel>=0.0.38"]
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.4",
+    "fastapi[standard]>=0.136.3",
+    "passlib[bcrypt]>=1.7.4",
+    "pydantic-settings>=2.14.1",
+    "pyjwt>=2.13.0",
+    "python-multipart>=0.0.32",
+    "sqlmodel>=0.0.38",
+]
 
 [dependency-groups]
 dev = ["ruff>=0.15.16"]
+
+[tool.alembic]
+script_location = "migrations"
+prepend_sys_path = "."
+version_path_separator = "os"
