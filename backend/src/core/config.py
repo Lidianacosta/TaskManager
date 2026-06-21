@@ -1,0 +1,18 @@
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    database_url: str = Field(default="sqlite+aiosqlite:///db.sqlite")
+
+    environment: str = Field(default="development")
+    secret_key: str = Field(
+        default="supersecretkey_please_change_in_production"
+    )
+    algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=60 * 24 * 7)
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
+settings = Settings()
