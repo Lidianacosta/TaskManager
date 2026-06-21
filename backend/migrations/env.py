@@ -1,12 +1,9 @@
 import asyncio
 
-import src.models  # noqa: F401
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlmodel import SQLModel
-from src.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -15,6 +12,12 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 # fileConfig(config.config_file_name)
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+import src.models  # noqa
+from sqlmodel import SQLModel
+from src.core.config import settings
 
 target_metadata = SQLModel.metadata
 
