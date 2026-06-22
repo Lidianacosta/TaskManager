@@ -30,10 +30,11 @@ async def setup_test_database():
 async def client() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(
         transport=ASGITransport(app=app),
-        base_url="http://test",
+        base_url="https://test",
         headers={"Content-Type": "application/json"}
     ) as ac:
         yield ac
+
 
 @pytest.fixture
 async def auth_headers(client: AsyncClient) -> dict:
