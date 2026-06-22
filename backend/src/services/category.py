@@ -22,16 +22,12 @@ class CategoryService:
     async def read(self, category_id: int) -> Category:
         return await self.__get_by_id(category_id)
 
-    async def read_all(
-        self, offset: int = 0, limit: int = 100
-    ) -> list[Category]:
+    async def read_all(self, offset: int = 0, limit: int = 100) -> list[Category]:
         statement = select(Category).offset(offset).limit(limit)
         result = await self.session.exec(statement)
         return list(result.all())
 
-    async def update(
-        self, category_id: int, category_in: CategoryUpdate
-    ) -> Category:
+    async def update(self, category_id: int, category_in: CategoryUpdate) -> Category:
         category = await self.__get_by_id(category_id)
         data = category_in.model_dump(exclude_unset=True)
 

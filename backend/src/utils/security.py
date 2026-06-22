@@ -14,9 +14,7 @@ from src.utils.password import verify_password
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
-async def authenticate_user(
-    email: str, password: str, user_service: UserServiceDep
-):
+async def authenticate_user(email: str, password: str, user_service: UserServiceDep):
     user = await user_service.get_user_by_email(email)
     if not user:
         return False
@@ -25,9 +23,7 @@ async def authenticate_user(
     return user
 
 
-def create_access_token(
-    data: dict, expires_delta: timedelta | None = None
-) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
