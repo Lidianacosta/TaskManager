@@ -12,14 +12,33 @@ import Categories from "@/pages/Categories";
 import Bugs from "@/pages/Bugs";
 import NotFound from "@/pages/not-found";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+
+      retry: (failureCount, error: unknown) => {
+        if (error && typeof error === "object" && "status" in error) {
+          const status = (error as { status: number }).status;
+          if (status === 401 || status === 403) return false;
+        }
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
 function AppRoutes() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -28,6 +47,7 @@ function AppRoutes() {
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/bugs" component={Bugs} />
           <Route path="*" component={Login} />
         </Switch>
       </Router>

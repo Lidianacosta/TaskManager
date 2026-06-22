@@ -1,26 +1,39 @@
 import { useState } from "react";
-import { useStore, createCategory, deleteCategory } from "@/lib/store";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/use-categories";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { PlusCircle, Trash2 } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { PlusCircle, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Nome é obrigatório"),
   color: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function Categories() {
-  const { categories } = useStore();
+  const { data: categories = [], isLoading } = useCategories();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
   const { toast } = useToast();
-  const [deleting, setDeleting] = useState<number | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -28,32 +41,37 @@ export default function Categories() {
   });
 
   const onSubmit = (data: FormValues) => {
-    createCategory({ name: data.name, color: data.color || "#808080" });
-    toast({ title: "Category created" });
-    form.reset();
+    createCategory.mutate(
+      { name: data.name, color: data.color || "#808080" },
+      {
+        onSuccess: () => {
+          toast({ title: "Categoria criada" });
+          form.reset();
+        },
+        onError: () => toast({ title: "Erro ao criar categoria", variant: "destructive" }),
+      },
+    );
   };
 
   const handleDelete = (id: number) => {
-    setDeleting(id);
-    setTimeout(() => {
-      deleteCategory(id);
-      toast({ title: "Category deleted" });
-      setDeleting(null);
-    }, 300);
+    deleteCategory.mutate(id, {
+      onSuccess: () => toast({ title: "Categoria excluída" }),
+      onError: () => toast({ title: "Erro ao excluir categoria", variant: "destructive" }),
+    });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Categories</h1>
-        <p className="text-muted-foreground text-sm">Organize your tasks into thematic buckets.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Categorias</h1>
+        <p className="text-muted-foreground text-sm">Organize suas tarefas em grupos temáticos.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-1 h-fit">
           <CardHeader>
-            <CardTitle className="text-lg">Add Category</CardTitle>
-            <CardDescription>Create a new tag for your tasks</CardDescription>
+            <CardTitle className="text-lg">Adicionar Categoria</CardTitle>
+            <CardDescription>Crie uma nova tag para suas tarefas</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -64,7 +82,7 @@ export default function Categories() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input placeholder="Category Name" {...field} />
+                        <Input placeholder="Nome da categoria" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -76,16 +94,26 @@ export default function Categories() {
                   render={({ field }) => (
                     <FormItem className="flex items-center space-x-2">
                       <FormControl>
-                        <input type="color" className="h-8 w-14 p-0 border-0 bg-transparent cursor-pointer rounded-md overflow-hidden" {...field} />
+                        <input
+                          type="color"
+                          className="h-8 w-14 p-0 border-0 bg-transparent cursor-pointer rounded-md overflow-hidden"
+                          {...field}
+                        />
                       </FormControl>
-                      <span className="text-sm text-muted-foreground uppercase">{field.value}</span>
+                      <span className="text-sm text-muted-foreground uppercase">
+                        {field.value}
+                      </span>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create
+                <Button type="submit" className="w-full" disabled={createCategory.isPending}>
+                  {createCategory.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                  )}
+                  Criar
                 </Button>
               </form>
             </Form>
@@ -93,23 +121,30 @@ export default function Categories() {
         </Card>
 
         <div className="md:col-span-2 space-y-3">
-          {categories.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : categories.length === 0 ? (
             <div className="text-center py-8 border rounded-lg bg-card text-muted-foreground text-sm">
-              No categories created yet.
+              Nenhuma categoria criada ainda.
             </div>
           ) : (
             categories.map((cat) => (
               <Card key={cat.id} className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: cat.color || '#ccc' }} />
+                  <div
+                    className="w-4 h-4 rounded-full border border-black/10 shadow-inner"
+                    style={{ backgroundColor: cat.color || "#ccc" }}
+                  />
                   <span className="font-medium">{cat.name}</span>
                 </div>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   onClick={() => handleDelete(cat.id)}
-                  disabled={deleting === cat.id}
+                  disabled={deleteCategory.isPending}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

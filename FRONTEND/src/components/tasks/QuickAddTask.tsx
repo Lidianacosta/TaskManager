@@ -1,33 +1,58 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createTask } from "@/lib/store";
+import { useCreateTask } from "@/hooks/use-tasks";
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, PlusCircle } from "lucide-react";
+import type { Category } from "@/lib/api";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "Título é obrigatório"),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function QuickAddTask() {
+interface QuickAddTaskProps {
+  categories?: Category[];
+}
+
+export function QuickAddTask({ categories: _categories }: QuickAddTaskProps) {
   const { toast } = useToast();
+  const createTask = useCreateTask();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { title: "", priority: "medium" },
   });
 
   const onSubmit = (data: FormValues) => {
-    createTask({ title: data.title, priority: data.priority });
-    toast({ title: "Task added successfully" });
-    form.reset();
+    createTask.mutate(
+      { title: data.title, priority: data.priority },
+      {
+        onSuccess: () => {
+          toast({ title: "Tarefa adicionada" });
+          form.reset();
+        },
+        onError: () => toast({ title: "Erro ao criar tarefa", variant: "destructive" }),
+      },
+    );
   };
 
   return (
@@ -39,7 +64,7 @@ export function QuickAddTask() {
           render={({ field }) => (
             <FormItem className="flex-1">
               <FormControl>
-                <Input placeholder="What needs to be done?" {...field} />
+                <Input placeholder="O que precisa ser feito?" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,16 +82,20 @@ export function QuickAddTask() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>
           )}
         />
-        <Button type="submit" size="icon">
-          <PlusCircle className="h-4 w-4" />
+        <Button type="submit" size="icon" disabled={createTask.isPending}>
+          {createTask.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <PlusCircle className="h-4 w-4" />
+          )}
         </Button>
       </form>
     </Form>

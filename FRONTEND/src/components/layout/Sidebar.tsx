@@ -23,7 +23,6 @@ export function Sidebar() {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/tasks", label: "Tarefas", icon: CheckSquare, badge: summary?.by_status?.todo ? summary.by_status.todo : undefined },
     { href: "/categories", label: "Categorias", icon: Tags },
-    { href: "/bugs", label: "Bugs", icon: Bug },
   ];
 
   return (

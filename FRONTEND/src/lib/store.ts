@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
 
-// ── Types ─────────────────────────────────────────────────────────────
 export interface User {
   id: number;
   name: string;
@@ -56,18 +55,22 @@ export interface TaskSummary {
 
 export interface BugSummary {
   total: number;
-  by_status: { open: number; in_progress: number; resolved: number; closed: number };
+  by_status: {
+    open: number;
+    in_progress: number;
+    resolved: number;
+    closed: number;
+  };
   by_priority: { low: number; medium: number; high: number; critical: number };
 }
 
-// ── Auth helpers ────────────────────────────────────────────────────
 const AUTH_KEY = "task-manager-auth";
 
 export function getAuth(): { user: User | null; token: string | null } {
   try {
     const raw = localStorage.getItem(AUTH_KEY);
     if (raw) return JSON.parse(raw);
-  } catch { /* noop */ }
+  } catch {}
   return { user: null, token: null };
 }
 
@@ -81,7 +84,6 @@ export function clearAuth() {
   emit();
 }
 
-// ── Store internals ─────────────────────────────────────────────────
 const STORAGE_KEY = "task-manager-data";
 
 interface Store {
@@ -94,7 +96,7 @@ function loadStore(): Store {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch { /* noop */ }
+  } catch {}
   return { tasks: [], categories: [], bugs: [] };
 }
 
@@ -104,7 +106,7 @@ let _listeners: Set<() => void> = new Set();
 function saveStore() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(_store));
-  } catch { /* noop */ }
+  } catch {}
 }
 
 function emit() {
@@ -120,7 +122,6 @@ function getSnapshot() {
   return JSON.stringify({ store: _store, auth: getAuth() });
 }
 
-// ── Public hook ─────────────────────────────────────────────────────
 export function useStore() {
   const snap = useSyncExternalStore(subscribe, getSnapshot);
   const { store, auth } = JSON.parse(snap);
@@ -132,17 +133,70 @@ export function useStore() {
   };
 }
 
-// ── Seed (runs once) ────────────────────────────────────────────────
 export function seedData() {
   const cats: Category[] = [
-    { id: 1, name: "Trabalho", color: "#6366f1", created_at: now(), updated_at: now() },
-    { id: 2, name: "Pessoal", color: "#22c55e", created_at: now(), updated_at: now() },
-    { id: 3, name: "Urgente", color: "#ef4444", created_at: now(), updated_at: now() },
+    {
+      id: 1,
+      name: "Trabalho",
+      color: "#6366f1",
+      created_at: now(),
+      updated_at: now(),
+    },
+    {
+      id: 2,
+      name: "Pessoal",
+      color: "#22c55e",
+      created_at: now(),
+      updated_at: now(),
+    },
+    {
+      id: 3,
+      name: "Urgente",
+      color: "#ef4444",
+      created_at: now(),
+      updated_at: now(),
+    },
   ];
   const tasks: Task[] = [
-    { id: 1, title: "Revisar documenta\u00e7\u00e3o", description: "Ler e comentar", status: "todo", priority: "medium", due_date: null, category_id: 1, created_at: now(), updated_at: now(), category_name: "Trabalho", category_color: "#6366f1" },
-    { id: 2, title: "Enviar relat\u00f3rio", description: null, status: "in_progress", priority: "high", due_date: now(), category_id: 1, created_at: now(), updated_at: now(), category_name: "Trabalho", category_color: "#6366f1" },
-    { id: 3, title: "Comprar mantimentos", description: null, status: "todo", priority: "low", due_date: null, category_id: 2, created_at: now(), updated_at: now(), category_name: "Pessoal", category_color: "#22c55e" },
+    {
+      id: 1,
+      title: "Revisar documenta\u00e7\u00e3o",
+      description: "Ler e comentar",
+      status: "todo",
+      priority: "medium",
+      due_date: null,
+      category_id: 1,
+      created_at: now(),
+      updated_at: now(),
+      category_name: "Trabalho",
+      category_color: "#6366f1",
+    },
+    {
+      id: 2,
+      title: "Enviar relat\u00f3rio",
+      description: null,
+      status: "in_progress",
+      priority: "high",
+      due_date: now(),
+      category_id: 1,
+      created_at: now(),
+      updated_at: now(),
+      category_name: "Trabalho",
+      category_color: "#6366f1",
+    },
+    {
+      id: 3,
+      title: "Comprar mantimentos",
+      description: null,
+      status: "todo",
+      priority: "low",
+      due_date: null,
+      category_id: 2,
+      created_at: now(),
+      updated_at: now(),
+      category_name: "Pessoal",
+      category_color: "#22c55e",
+    },
   ];
   _store = { tasks, categories: cats, bugs: [] };
   saveStore();
@@ -157,7 +211,6 @@ export function getAuthUser(): User | null {
   return getAuth().user;
 }
 
-// ── Task CRUD ───────────────────────────────────────────────────────
 export function getTasksSummary(): TaskSummary {
   const tasks = _store.tasks;
   const summary: TaskSummary = {
@@ -189,7 +242,9 @@ export function getBugsSummary(): BugSummary {
 }
 
 export function createTask(data: Partial<Task> & { title: string }): Task {
-  const cat = _store.categories.find((c) => c.id === (data.category_id ?? null));
+  const cat = _store.categories.find(
+    (c) => c.id === (data.category_id ?? null),
+  );
   const task: Task = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: data.title,
@@ -212,9 +267,10 @@ export function createTask(data: Partial<Task> & { title: string }): Task {
 export function updateTask(id: number, data: Partial<Task>): Task | null {
   const idx = _store.tasks.findIndex((t) => t.id === id);
   if (idx === -1) return null;
-  const cat = data.category_id !== undefined
-    ? _store.categories.find((c) => c.id === data.category_id)
-    : undefined;
+  const cat =
+    data.category_id !== undefined
+      ? _store.categories.find((c) => c.id === data.category_id)
+      : undefined;
   const updated = { ..._store.tasks[idx], ...data, updated_at: now() };
   if (cat) {
     updated.category_name = cat.name;
@@ -235,8 +291,10 @@ export function deleteTask(id: number) {
   emit();
 }
 
-// ── Category CRUD ───────────────────────────────────────────────────
-export function createCategory(data: { name: string; color: string }): Category {
+export function createCategory(data: {
+  name: string;
+  color: string;
+}): Category {
   const cat: Category = {
     id: Date.now(),
     name: data.name,
@@ -250,11 +308,18 @@ export function createCategory(data: { name: string; color: string }): Category 
   return cat;
 }
 
-export function updateCategory(id: number, data: Partial<Category>): Category | null {
+export function updateCategory(
+  id: number,
+  data: Partial<Category>,
+): Category | null {
   const idx = _store.categories.findIndex((c) => c.id === id);
   if (idx === -1) return null;
-  _store.categories[idx] = { ..._store.categories[idx], ...data, updated_at: now() };
-  // sync category name on tasks
+  _store.categories[idx] = {
+    ..._store.categories[idx],
+    ...data,
+    updated_at: now(),
+  };
+
   if (data.name) {
     for (const t of _store.tasks) {
       if (t.category_id === id) {
@@ -281,7 +346,6 @@ export function deleteCategory(id: number) {
   emit();
 }
 
-// ── Bug CRUD ────────────────────────────────────────────────────────
 export function createBug(data: Partial<Bug> & { title: string }): Bug {
   const bug: Bug = {
     id: Date.now(),
@@ -321,7 +385,6 @@ export function deleteBug(id: number) {
   emit();
 }
 
-// Auto-seed on first load if empty
 if (_store.tasks.length === 0 && _store.categories.length === 0) {
   seedData();
 }

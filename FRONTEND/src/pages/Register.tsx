@@ -1,19 +1,31 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, ApiError } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CheckSquare, Loader2 } from "lucide-react";
 
 export default function Register() {
   const [, navigate] = useLocation();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,19 +38,21 @@ export default function Register() {
       return;
     }
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
-    // Store user in localStorage
-    const stored = localStorage.getItem("task-manager-users");
-    let users: { name: string; email: string; password: string }[] = [];
-    if (stored) {
-      try { users = JSON.parse(stored); } catch { /* noop */ }
+    try {
+      await register(form.name, form.email, form.password);
+      toast({ title: `Bem-vindo, ${form.name}!`, description: "Conta criada com sucesso." });
+      navigate("/");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.status === 422
+            ? "Dados inválidos. Verifique os campos e tente novamente."
+            : err.message
+          : "Erro inesperado. Tente novamente.";
+      toast({ title: "Erro ao criar conta", description: message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
-    users.push({ name: form.name, email: form.email, password: form.password });
-    localStorage.setItem("task-manager-users", JSON.stringify(users));
-    login("local-token", { id: 1, name: form.name, email: form.email });
-    toast({ title: `Bem-vindo, ${form.name}!`, description: "Conta criada com sucesso." });
-    navigate("/");
-    setIsLoading(false);
   };
 
   return (
@@ -61,19 +75,51 @@ export default function Register() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input id="name" type="text" placeholder="Seu nome" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required autoComplete="name" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  required
+                  autoComplete="name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required autoComplete="email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  required
+                  autoComplete="email"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
-                <Input id="password" type="password" placeholder="Mínimo 6 caracteres" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required autoComplete="new-password" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  required
+                  autoComplete="new-password"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                <Input id="confirmPassword" type="password" placeholder="••••••••" value={form.confirmPassword} onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))} required autoComplete="new-password" />
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={form.confirmPassword}
+                  onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                  required
+                  autoComplete="new-password"
+                />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
@@ -83,7 +129,11 @@ export default function Register() {
               </Button>
               <p className="text-sm text-muted-foreground text-center">
                 Já tem conta?{" "}
-                <button type="button" className="text-primary underline-offset-4 hover:underline font-medium" onClick={() => navigate("/login")}>
+                <button
+                  type="button"
+                  className="text-primary underline-offset-4 hover:underline font-medium"
+                  onClick={() => navigate("/login")}
+                >
                   Entrar
                 </button>
               </p>
