@@ -1,137 +1,63 @@
 import { useState, useMemo } from "react";
-import { useStore, getBugsSummary } from "@/lib/store";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useBugs } from "@/hooks/use-bugs";
 import { Card } from "@/components/ui/card";
-import { Bug, Plus } from "lucide-react";
-import { BugSheet } from "@/components/bugs/BugSheet";
-import { ReportBugDialog } from "@/components/bugs/ReportBugDialog";
+import { Bug, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
-const STATUS_LABELS: Record<string, string> = {
-  open: "Aberto", in_progress: "Em andamento", resolved: "Resolvido", closed: "Fechado",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  open: "bg-red-100 text-red-700 border-red-200",
-  in_progress: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  resolved: "bg-green-100 text-green-700 border-green-200",
-  closed: "bg-gray-100 text-gray-500 border-gray-200",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  low: "secondary", medium: "default", high: "destructive", critical: "destructive",
-} as const;
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: "Baixa", medium: "M\u00e9dia", high: "Alta", critical: "Cr\u00edtica",
-};
-
 export default function Bugs() {
-  const { bugs } = useStore();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [selectedBugId, setSelectedBugId] = useState<number | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
+  const { data: bugs = [], isLoading } = useBugs();
 
-  const summary = useMemo(() => getBugsSummary(), [bugs]);
-
-  const filtered = useMemo(() => {
-    return bugs.filter((b) => {
-      if (statusFilter !== "all" && b.status !== statusFilter) return false;
-      if (priorityFilter !== "all" && b.priority !== priorityFilter) return false;
-      return true;
-    });
-  }, [bugs, statusFilter, priorityFilter]);
-
-  const openBug = (id: number) => {
-    setSelectedBugId(id);
-    setSheetOpen(true);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Bugs</h1>
-          <p className="text-muted-foreground text-sm">Reporte e acompanhe bugs do sistema.</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="in_progress">Em andamento</SelectItem>
-              <SelectItem value="resolved">Resolvido</SelectItem>
-              <SelectItem value="closed">Fechado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-              <SelectItem value="medium">M\u00e9dia</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="critical">Cr\u00edtica</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button onClick={() => setReportOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Reportar bug
-          </Button>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
+            Bugs
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Listagem pública de bugs registrados.
+          </p>
         </div>
       </div>
 
       <div className="space-y-2">
-        {filtered.length === 0 ? (
+        {bugs.length === 0 ? (
           <div className="text-center py-16 border-2 border-dashed rounded-lg border-muted">
             <Bug className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
             <h3 className="text-lg font-medium">Nenhum bug encontrado</h3>
-            <p className="text-sm text-muted-foreground mt-1">Tente ajustar os filtros ou reporte um novo bug.</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Nenhum bug no momento.
+            </p>
           </div>
         ) : (
-          filtered.map((bug) => (
+          bugs.map((bug) => (
             <Card
-              key={bug.id}
-              onClick={() => openBug(bug.id)}
-              className={`p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50 ${
-                bug.status === "closed" || bug.status === "resolved" ? "opacity-60" : ""
-              }`}
+              key={bug.id ?? Math.random()}
+              className="p-4 flex items-center gap-4 transition-all duration-200"
             >
               <div className="flex-1 min-w-0">
-                <p className={`font-medium truncate ${bug.status === "resolved" || bug.status === "closed" ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                  {bug.title}
-                </p>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[bug.status]}`}>
-                    {STATUS_LABELS[bug.status]}
+                <p className="font-medium text-foreground">{bug.title}</p>
+                {bug.description && (
+                  <p className="text-sm text-muted-foreground truncate">{bug.description}</p>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {bug.created_at ? format(new Date(bug.created_at), "dd/MM/yyyy") : "Data indisponível"}
                   </span>
-                  {bug.version && <span className="text-xs text-muted-foreground">v{bug.version}</span>}
-                  <span className="text-xs text-muted-foreground">{format(new Date(bug.created_at), "dd/MM/yyyy")}</span>
-                  {bug.issue_url && (
-                    <span className="text-xs text-primary underline cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(bug.issue_url!, "_blank"); }}>
-                      GitHub #{bug.issue_number}
-                    </span>
-                  )}
                 </div>
               </div>
-              <Badge variant={PRIORITY_COLORS[bug.priority] as any} className="capitalize shrink-0">
-                {PRIORITY_LABELS[bug.priority]}
-              </Badge>
             </Card>
           ))
         )}
       </div>
-
-      <BugSheet bugId={selectedBugId} open={sheetOpen} onOpenChange={setSheetOpen} />
-      <ReportBugDialog open={reportOpen} onOpenChange={setReportOpen} />
     </div>
   );
 }
