@@ -38,4 +38,15 @@ jobs:
       run: |
         uv run pytest --cov=src --cov-report=xml
 
-
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
+    steps:
+      - name: Trigger Deploy on Render
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            curl -f -X POST "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}"
+          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            curl -f -X POST "${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}"
+          fi
