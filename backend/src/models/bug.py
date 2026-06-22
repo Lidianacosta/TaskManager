@@ -20,3 +20,4 @@ class Bug(Base, table=True):
     timestamp: Optional[datetime] = None
     issue_number: Optional[int] = None
     issue_url: Optional[str] = None
+    user_id: int = Field(foreign_key="user.id")

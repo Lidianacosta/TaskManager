@@ -16,7 +16,7 @@ async def create_task(
     task_service: TaskServiceDep,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    return await task_service.create(task_in)
+    return await task_service.create(task_in, current_user.id)
 
 
 @router.get("/", response_model=list[TaskOut])
@@ -24,7 +24,7 @@ async def read_tasks(
     task_service: TaskServiceDep,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    return await task_service.get_tasks_with_category()
+    return await task_service.get_tasks_with_category(current_user.id)
 
 
 @router.patch("/{task_id}", response_model=TaskOut)
@@ -34,7 +34,7 @@ async def update_task(
     task_service: TaskServiceDep,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    return await task_service.update(task_id, task_in)
+    return await task_service.update(task_id, task_in, current_user.id)
 
 
 @router.delete("/{task_id}")
@@ -43,5 +43,5 @@ async def delete_task(
     task_service: TaskServiceDep,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    await task_service.delete(task_id)
+    await task_service.delete(task_id, current_user.id)
     return {"message": "Task deleted successfully"}
