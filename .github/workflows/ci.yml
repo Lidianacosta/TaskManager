@@ -46,7 +46,15 @@ jobs:
       - name: Trigger Deploy on Render
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            if [ -z "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}" ]; then
+              echo "RENDER_PRODUCTION_DEPLOY_HOOK is not set. Skipping deploy."
+              exit 0
+            fi
             curl -f -X POST "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}"
           elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            if [ -z "${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}" ]; then
+              echo "RENDER_DEVELOP_DEPLOY_HOOK is not set. Skipping deploy."
+              exit 0
+            fi
             curl -f -X POST "${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}"
           fi
