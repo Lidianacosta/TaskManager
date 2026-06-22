@@ -13,6 +13,8 @@ wheels/
 db.sqlite
 test_db.sqlite
 .coverage
+coverage.xml
 htmlcov/
 .pytest_cache/
+
 
