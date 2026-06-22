@@ -1,23 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-@pytest.fixture
-async def auth_headers(client: AsyncClient) -> dict:
-    user_data = {
-        "email": "bugs_user@example.com",
-        "name": "Bugs User",
-        "password": "bugpassword123"
-    }
-    await client.post("/users/", json=user_data)
-    
-    login_data = {
-        "username": "bugs_user@example.com",
-        "password": "bugpassword123"
-    }
-    response = await client.post("/auth/token", data=login_data, headers={"Content-Type": "application/x-www-form-urlencoded"})
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
 @pytest.mark.asyncio
 async def test_bugs_crud(client: AsyncClient, auth_headers: dict):
     bug_data = {
