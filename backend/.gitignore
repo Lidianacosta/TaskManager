@@ -11,3 +11,8 @@ wheels/
 
 .ruff_cache
 db.sqlite
+test_db.sqlite
+.coverage
+htmlcov/
+.pytest_cache/
+
