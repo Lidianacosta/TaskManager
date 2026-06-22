@@ -14,6 +14,7 @@ dependencies = [
     "pyjwt>=2.13.0",
     "python-multipart>=0.0.32",
     "sqlmodel>=0.0.38",
+    "asyncpg>=0.31.0",
 ]
 
 [dependency-groups]
