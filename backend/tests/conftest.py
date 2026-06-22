@@ -35,6 +35,24 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
     ) as ac:
         yield ac
 
+@pytest.fixture
+async def auth_headers(client: AsyncClient) -> dict:
+    user_data = {
+        "email": "testuser_auth@example.com",
+        "name": "Auth User",
+        "password": "authpassword123"
+    }
+    await client.post("/users/", json=user_data)
+    
+    login_data = {
+        "username": "testuser_auth@example.com",
+        "password": "authpassword123"
+    }
+    response = await client.post("/auth/token", data=login_data, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 
 
 
