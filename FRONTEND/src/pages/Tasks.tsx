@@ -126,9 +126,17 @@ export default function Tasks() {
           filteredTasks.map((task) => (
             <Card
               key={task.id}
-              onClick={() => openTask(task.id)}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest("button, input, [role='checkbox']")) {
+                  return;
+                }
+                openTask(task.id);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
+                  if ((e.target as HTMLElement).closest("button, input, [role='checkbox']")) {
+                    return;
+                  }
                   e.preventDefault();
                   openTask(task.id);
                 }
@@ -137,7 +145,7 @@ export default function Tasks() {
               role="button"
               className={`p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50 ${task.status === "done" ? "opacity-60 bg-muted/30" : ""}`}
             >
-              <div onClick={(e) => e.stopPropagation()}>
+              <div>
                 <Checkbox
                   checked={task.status === "done"}
                   onClick={(e) =>
