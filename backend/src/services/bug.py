@@ -11,8 +11,8 @@ class BugService:
     def __init__(self, session: AsyncSessionDep) -> None:
         self.session = session
 
-    async def create(self, bug_in: BugIn, user_id: int) -> Bug:
-        bug = Bug(**bug_in.model_dump(), user_id=user_id)
+    async def create(self, bug_in: BugIn) -> Bug:
+        bug = Bug(**bug_in.model_dump())
         self.session.add(bug)
         await self.session.commit()
         await self.session.refresh(bug)

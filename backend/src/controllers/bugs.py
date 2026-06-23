@@ -16,7 +16,7 @@ async def create_bug(
     bug_service: BugServiceDep,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    return await bug_service.create(bug_in, current_user.id)
+    return await bug_service.create(bug_in)
 
 
 @router.get("/", response_model=list[BugOut])
