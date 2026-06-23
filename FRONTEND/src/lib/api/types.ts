@@ -55,9 +55,16 @@ export interface CategoryUpdate {
 }
 
 export interface Bug {
-  id: number | null;
+  id: number;
   title: string;
   description: string | null;
+  status: "open" | "in_progress" | "resolved" | "closed";
+  priority: "low" | "medium" | "high" | "critical";
+  steps_to_reproduce: string | null;
+  environment: string | null;
+  version: string | null;
+  url: string | null;
+  user_agent: string | null;
   timestamp: string | null;
   created_at: string;
   updated_at: string;
@@ -72,6 +79,13 @@ export interface BugIn {
 export interface BugUpdate {
   title?: string | null;
   description?: string | null;
+  status?: "open" | "in_progress" | "resolved" | "closed" | null;
+  priority?: "low" | "medium" | "high" | "critical" | null;
+  steps_to_reproduce?: string | null;
+  environment?: string | null;
+  version?: string | null;
+  url?: string | null;
+  user_agent?: string | null;
   timestamp?: string | null;
 }
 

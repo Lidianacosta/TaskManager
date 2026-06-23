@@ -1,8 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, CheckSquare, Tags, Bug, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useStore, getTasksSummary } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTasks } from "@/hooks/use-tasks";
 import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
 import {
@@ -16,12 +16,21 @@ import {
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
-  const { tasks } = useStore();
-  const summary = useMemo(() => getTasksSummary(), [tasks]);
+  const { data: tasks = [] } = useTasks();
+
+  const todoCount = useMemo(
+    () => tasks.filter((t) => t.status === "todo").length,
+    [tasks],
+  );
 
   const links = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/tasks", label: "Tarefas", icon: CheckSquare, badge: summary?.by_status?.todo ? summary.by_status.todo : undefined },
+    {
+      href: "/tasks",
+      label: "Tarefas",
+      icon: CheckSquare,
+      badge: todoCount > 0 ? todoCount : undefined,
+    },
     { href: "/categories", label: "Categorias", icon: Tags },
   ];
 
