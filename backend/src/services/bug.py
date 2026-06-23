@@ -1,9 +1,7 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
-from sqlmodel import select, col
-
-from src.models.base import get_utc_now
+from fastapi import Depends
+from sqlmodel import select
 from src.models.bug import Bug
 from src.schemas.bug import BugIn
 from src.utils.database import AsyncSessionDep
