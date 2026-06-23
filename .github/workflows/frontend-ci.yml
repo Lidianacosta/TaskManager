@@ -43,3 +43,27 @@ jobs:
 
     - name: Build frontend
       run: npm run build
+
+    - name: Deploy to Netlify (Preview)
+      if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      run: |
+        if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+          npx netlify-cli deploy --dir=dist --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
+        else
+          echo "Netlify credentials not set. Skipping deploy."
+        fi
+
+    - name: Deploy to Netlify (Production)
+      if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      run: |
+        if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+          npx netlify-cli deploy --dir=dist --prod --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
+        else
+          echo "Netlify credentials not set. Skipping deploy."
+        fi
