@@ -28,7 +28,7 @@ async def test_create_user_and_login(client: AsyncClient):
     assert token_data["token_type"] == "bearer"
 
 @pytest.mark.asyncio
-async def test_login_invalid_credentials(client: AsyncClient):
+async def test_login_nonexistent_user(client: AsyncClient):
     login_data = {
         "username": "nonexistent@example.com",
         "password": "somepassword"
@@ -37,6 +37,8 @@ async def test_login_invalid_credentials(client: AsyncClient):
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect email or password"
 
+@pytest.mark.asyncio
+async def test_login_incorrect_password(client: AsyncClient):
     user_data = {
         "email": "wrongpass@example.com",
         "name": "Wrong Pass User",

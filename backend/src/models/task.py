@@ -16,5 +16,5 @@ class Task(Base, table=True):
     priority: str = Field(default="medium")
     due_date: Optional[datetime] = None
     category_id: Optional[int] = Field(default=None, foreign_key="category.id")
-
+    user_id: int = Field(foreign_key="user.id") # adicionada para relacionar a tarefa com o usuário
     category: Optional["Category"] = Relationship(back_populates="tasks")

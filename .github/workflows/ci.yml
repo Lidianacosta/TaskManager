@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Backend CI/CD
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ "main", "master", "develop" ]
 
 jobs:
-  validate:
+  backend-ci-cd:
+    name: Backend CI/CD
     runs-on: ubuntu-latest
 
     steps:
@@ -30,31 +31,30 @@ jobs:
 
     - name: Run lint checks
       working-directory: backend
-      run: |
-        uv run ruff check src
+      run: uv run ruff check src
 
     - name: Run tests
       working-directory: backend
-      run: |
-        uv run pytest --cov=src --cov-report=xml
+      run: uv run pytest --cov=src --cov-report=xml
 
-  deploy:
-    needs: validate
-    runs-on: ubuntu-latest
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
-    steps:
-      - name: Trigger Deploy on Render
-        run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            if [ -z "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}" ]; then
-              echo "RENDER_PRODUCTION_DEPLOY_HOOK is not set. Skipping deploy."
-              exit 0
-            fi
-            curl -f -X POST "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}"
-          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            if [ -z "${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}" ]; then
-              echo "RENDER_DEVELOP_DEPLOY_HOOK is not set. Skipping deploy."
-              exit 0
-            fi
-            curl -f -X POST "${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}"
-          fi
+    - name: Deploy to Develop
+      if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+      env:
+        HOOK: ${{ secrets.RENDER_DEVELOP_DEPLOY_HOOK }}
+      run: |
+        if [ -n "$HOOK" ]; then
+          curl -f -X POST "$HOOK"
+        else
+          echo "RENDER_DEVELOP_DEPLOY_HOOK is not set. Skipping deploy."
+        fi
+
+    - name: Deploy to Production
+      if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+      env:
+        HOOK: ${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}
+      run: |
+        if [ -n "$HOOK" ]; then
+          curl -f -X POST "$HOOK"
+        else
+          echo "RENDER_PRODUCTION_DEPLOY_HOOK is not set. Skipping deploy."
+        fi
