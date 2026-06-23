@@ -3,14 +3,8 @@ name: Frontend CI/CD
 on:
   push:
     branches: [ "main", "master", "develop" ]
-    paths:
-      - 'FRONTEND/**'
-      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches: [ "main", "master", "develop" ]
-    paths:
-      - 'FRONTEND/**'
-      - '.github/workflows/frontend-ci.yml'
 
 jobs:
   frontend-ci-cd:
