@@ -38,9 +38,9 @@ export default function Bugs() {
             </p>
           </div>
         ) : (
-          bugs.map((bug) => (
+          bugs.map((bug, index) => (
             <Card
-              key={bug.id ?? Math.random()}
+              key={bug.id ?? index}
               className="p-4 flex items-center gap-4 transition-all duration-200"
             >
               <div className="flex-1 min-w-0">

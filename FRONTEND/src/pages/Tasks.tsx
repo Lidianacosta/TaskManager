@@ -127,6 +127,14 @@ export default function Tasks() {
             <Card
               key={task.id}
               onClick={() => openTask(task.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openTask(task.id);
+                }
+              }}
+              tabIndex={0}
+              role="button"
               className={`p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50 ${task.status === "done" ? "opacity-60 bg-muted/30" : ""}`}
             >
               <div onClick={(e) => e.stopPropagation()}>

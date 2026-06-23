@@ -168,12 +168,14 @@ export function BugSheet({ bugId, bugs, open, onOpenChange }: BugSheetProps) {
           {bug.url && (
             <div className="text-xs text-muted-foreground">
               URL:{" "}
-              <span
+              <a
+                href={bug.url!}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-primary underline cursor-pointer"
-                onClick={() => window.open(bug.url!, "_blank")}
               >
                 {bug.url}
-              </span>
+              </a>
             </div>
           )}
           {bug.user_agent && (

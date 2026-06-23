@@ -245,8 +245,11 @@ export function createTask(data: Partial<Task> & { title: string }): Task {
   const cat = _store.categories.find(
     (c) => c.id === (data.category_id ?? null),
   );
+  const secureRandom = (typeof window !== "undefined" && window.crypto)
+    ? window.crypto.getRandomValues(new Uint32Array(1))[0]
+    : Date.now();
   const task: Task = {
-    id: Date.now() + Math.floor(Math.random() * 1000),
+    id: Date.now() + (secureRandom % 1000),
     title: data.title,
     description: data.description ?? null,
     status: data.status ?? "todo",
