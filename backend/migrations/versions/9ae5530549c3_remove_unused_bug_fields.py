@@ -23,9 +23,12 @@ def upgrade() -> None:
     """Upgrade schema."""
     bind = op.get_bind()
     dialect = bind.dialect.name
+    
+    if dialect == 'postgresql':
+        op.execute('ALTER TABLE "bug" DROP CONSTRAINT IF EXISTS "bug_user_id_fkey"')
+        op.execute('ALTER TABLE "bug" DROP CONSTRAINT IF EXISTS "fk_bug_user_id"')
+
     with op.batch_alter_table('bug', schema=None) as batch_op:
-        if dialect == 'postgresql':
-            batch_op.drop_constraint('bug_user_id_fkey', type_='foreignkey')
         batch_op.drop_column('user_id')
         batch_op.drop_column('status')
         batch_op.drop_column('priority')
