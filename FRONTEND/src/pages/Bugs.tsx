@@ -1,10 +1,13 @@
 import { useBugs, useUpdateBug, useDeleteBug } from "@/hooks/use-bugs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Trash2, GitPullRequest, Clock } from "lucide-react";
+import { Loader2, Trash2, GitPullRequest, Clock, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { ReportBugDialog } from "@/components/bugs/ReportBugDialog";
 import {
   Select,
   SelectContent,
@@ -20,6 +23,8 @@ export default function Bugs() {
   const deleteBug = useDeleteBug();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleStatusChange = (id: number, status: string) => {
     updateBug.mutate(
@@ -72,7 +77,7 @@ export default function Bugs() {
 
   const isMutating = updateBug.isPending || deleteBug.isPending;
 
-  return (
+  const renderContent = () => (
     <div className="space-y-6 animate-in fade-in duration-500 pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -80,7 +85,7 @@ export default function Bugs() {
             Solicitações de Mudanças
           </h1>
           <p className="text-muted-foreground text-sm">
-            Listagem pública de sugestões de melhorias e correções registradas.
+            Listagem pública de sugestões de melhorias e correções registradas. Qualquer pessoa pode opinar e atualizar status.
           </p>
         </div>
       </div>
@@ -119,39 +124,37 @@ export default function Bugs() {
                   </div>
                 </div>
 
-                {isAuthenticated && (
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto justify-end">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">Status:</span>
-                      <Select
-                        defaultValue={bug.status || "open"}
-                        onValueChange={(val) => handleStatusChange(bug.id, val)}
-                        disabled={isMutating}
-                      >
-                        <SelectTrigger className="w-[140px] h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">Aberta</SelectItem>
-                          <SelectItem value="in_progress">Em Progresso</SelectItem>
-                          <SelectItem value="resolved">Resolvida</SelectItem>
-                          <SelectItem value="closed">Fechada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9"
-                      onClick={() => handleDelete(bug.id)}
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto justify-end">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground">Status:</span>
+                    <Select
+                      defaultValue={bug.status || "open"}
+                      onValueChange={(val) => handleStatusChange(bug.id, val)}
                       disabled={isMutating}
-                      aria-label="Excluir Solicitação"
                     >
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </Button>
+                      <SelectTrigger className="w-[140px] h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Aberta</SelectItem>
+                        <SelectItem value="in_progress">Em Progresso</SelectItem>
+                        <SelectItem value="resolved">Resolvida</SelectItem>
+                        <SelectItem value="closed">Fechada</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9"
+                    onClick={() => handleDelete(bug.id)}
+                    disabled={isMutating}
+                    aria-label="Excluir Solicitação"
+                  >
+                    <Trash2 className="h-4.5 w-4.5" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))
@@ -159,4 +162,49 @@ export default function Bugs() {
       </div>
     </div>
   );
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-tr from-muted/20 via-background to-muted/10">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between px-6 max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 font-bold text-lg text-primary tracking-tight">
+              <div className="bg-primary/10 p-1.5 rounded-lg flex items-center justify-center">
+                <GitPullRequest className="h-5 w-5 text-primary" />
+              </div>
+              <span>Task Manager</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setReportOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5 border-primary/20 hover:border-primary/40 hover:bg-primary/5 text-foreground"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Nova Solicitação</span>
+              </Button>
+              <Button
+                onClick={() => navigate("/login")}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+              >
+                Entrar
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto p-6 md:p-8 max-w-7xl animate-in fade-in duration-500">
+            {renderContent()}
+          </div>
+        </main>
+
+        <ReportBugDialog open={reportOpen} onOpenChange={setReportOpen} />
+      </div>
+    );
+  }
+
+  return renderContent();
 }
