@@ -18,7 +18,9 @@ from src.core.config import settings
 
 target_metadata = SQLModel.metadata
 
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Escapa '%' como '%%' para evitar que o ConfigParser do Alembic lance erro de interpolação
+escaped_db_url = settings.database_url.replace("%", "%%")
+config.set_main_option("sqlalchemy.url", escaped_db_url)
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
