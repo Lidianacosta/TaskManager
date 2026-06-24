@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
@@ -15,7 +16,10 @@ class TaskService:
         self.session = session
 
     async def create(self, task_in: TaskIn, user_id: int) -> Task:
-        task = Task(**task_in.model_dump(), user_id=user_id)
+        data = task_in.model_dump()
+        if data.get("due_date") and data["due_date"].tzinfo is not None:
+            data["due_date"] = data["due_date"].astimezone(timezone.utc).replace(tzinfo=None)
+        task = Task(**data, user_id=user_id)
         self.session.add(task)
         await self.session.commit()
         await self.session.refresh(task)
@@ -32,6 +36,9 @@ class TaskService:
     async def update(self, task_id: int, task_in: TaskUpdate, user_id: int) -> Task:
         task = await self.__get_by_id(task_id, user_id)
         data = task_in.model_dump(exclude_unset=True)
+
+        if data.get("due_date") and data["due_date"].tzinfo is not None:
+            data["due_date"] = data["due_date"].astimezone(timezone.utc).replace(tzinfo=None)
 
         for attr, value in data.items():
             setattr(task, attr, value)
