@@ -50,14 +50,14 @@ export function ReportBugDialog({
       {
         onSuccess: () => {
           toast({
-            title: "Bug reportado com sucesso",
-            description: "Obrigado por nos ajudar a melhorar!",
+            title: "Solicitação registrada com sucesso",
+            description: "Obrigado por nos ajudar a melhorar a plataforma!",
           });
           setForm(DEFAULT_FORM);
           onOpenChange(false);
         },
         onError: () =>
-          toast({ title: "Erro ao reportar bug", variant: "destructive" }),
+          toast({ title: "Erro ao registrar solicitação de mudança", variant: "destructive" }),
       },
     );
   };
@@ -66,7 +66,7 @@ export function ReportBugDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Reportar Bug</DialogTitle>
+          <DialogTitle>Solicitar Mudança</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -75,7 +75,7 @@ export function ReportBugDialog({
               id="bug-title"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="Resumo do problema"
+              placeholder="Resumo da solicitação de mudança"
               required
             />
           </div>
@@ -85,14 +85,14 @@ export function ReportBugDialog({
               id="bug-desc"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Descreva o bug em detalhes..."
+              placeholder="Descreva a solicitação de mudança em detalhes..."
               rows={5}
             />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createBug.isPending}>
               {createBug.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Reportar
+              Solicitar
             </Button>
           </DialogFooter>
         </form>

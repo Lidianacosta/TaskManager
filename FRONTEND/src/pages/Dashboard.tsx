@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { useTasks } from "@/hooks/use-tasks";
 import { useCategories } from "@/hooks/use-categories";
-import { QuickAddTask } from "@/components/tasks/QuickAddTask";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, CircleDashed, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, CircleDashed, Clock, AlertCircle, Loader2, PlusCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import type { Task } from "@/lib/api";
 
@@ -28,6 +30,8 @@ function getTasksSummary(tasks: Task[]) {
 export default function Dashboard() {
   const { data: tasks = [], isLoading } = useTasks();
   const { data: categories = [] } = useCategories();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const summary = useMemo(() => getTasksSummary(tasks), [tasks]);
   const recentTasks = useMemo(
@@ -46,7 +50,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Bom dia 👋</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Olá, {user?.name || "Visitante"} 👋</h1>
         <p className="text-muted-foreground">Veja o que está acontecendo com suas tarefas hoje.</p>
       </div>
 
@@ -94,13 +98,19 @@ export default function Dashboard() {
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Adição Rápida</CardTitle>
-              <CardDescription>Capture tarefas antes de esquecer.</CardDescription>
+              <CardTitle>Nova Tarefa</CardTitle>
+              <CardDescription>Crie uma tarefa com todos os detalhes.</CardDescription>
             </CardHeader>
             <CardContent>
-              <QuickAddTask categories={categories} />
+              <Button
+                onClick={() => setLocation("/tasks?create=true")}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Criar Nova Tarefa
+              </Button>
             </CardContent>
           </Card>
 
