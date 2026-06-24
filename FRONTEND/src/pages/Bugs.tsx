@@ -36,7 +36,7 @@ export default function Bugs() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir esta solicitação de mudança?")) return;
+    if (!window.confirm("Tem certeza que deseja excluir esta solicitação de mudança?")) return;
     deleteBug.mutate(id, {
       onSuccess: () => {
         toast({ title: "Solicitação de mudança excluída" });
