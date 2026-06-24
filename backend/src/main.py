@@ -10,11 +10,30 @@ from src.core.config import settings
 from src.utils.database import async_create_db_and_tables
 
 
+def check_tables(connection) -> tuple[bool, bool]:
+    from sqlalchemy import inspect
+    inspector = inspect(connection)
+    tables = inspector.get_table_names()
+    return "user" in tables, "alembic_version" in tables
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Executa na inicialização
     if settings.environment != "testing":
         try:
+            # Verifica se as tabelas já existem sem controle do Alembic
+            from src.utils.database import async_engine
+            async with async_engine.connect() as conn:
+                user_exists, alembic_exists = await conn.run_sync(check_tables)
+            
+            if user_exists and not alembic_exists:
+                print("Database tables exist but alembic_version is missing. Stamping with initial revision...")
+                subprocess.run(
+                    [sys.executable, "-m", "alembic", "stamp", "997a64ea1549"],
+                    check=True
+                )
+
             # Executa as migrações do Alembic automaticamente no startup
             subprocess.run(
                 [sys.executable, "-m", "alembic", "upgrade", "head"],
