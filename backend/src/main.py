@@ -1,16 +1,30 @@
 from contextlib import asynccontextmanager
+import subprocess
+import sys
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.controllers import auth, bugs, categories, tasks, users
+from src.core.config import settings
 from src.utils.database import async_create_db_and_tables
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Executa na inicialização
-    await async_create_db_and_tables()
+    if settings.environment != "testing":
+        try:
+            # Executa as migrações do Alembic automaticamente no startup
+            subprocess.run(
+                [sys.executable, "-m", "alembic", "upgrade", "head"],
+                check=True
+            )
+        except Exception as e:
+            print(f"Error running database migrations: {e}")
+            raise e
+    else:
+        await async_create_db_and_tables()
     yield
     # Executa na finalização
 
