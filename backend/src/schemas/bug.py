@@ -22,6 +22,13 @@ class BugIn(BugBase):
     pass
 
 
+class BugUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
+    timestamp: datetime | None = None
+
+
 class BugOut(BugBase):
     id: int
     created_at: datetime

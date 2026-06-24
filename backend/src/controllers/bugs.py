@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from src.models.user import User
-from src.schemas.bug import BugIn, BugOut
+from src.schemas.bug import BugIn, BugOut, BugUpdate
 from src.services.bug import BugServiceDep
 from src.utils.security import get_current_active_user
 
@@ -24,3 +24,23 @@ async def read_bugs(
     bug_service: BugServiceDep,
 ):
     return await bug_service.read_all()
+
+
+@router.patch("/{bug_id}", response_model=BugOut)
+async def update_bug(
+    bug_id: int,
+    bug_in: BugUpdate,
+    bug_service: BugServiceDep,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    return await bug_service.update(bug_id, bug_in)
+
+
+@router.delete("/{bug_id}")
+async def delete_bug(
+    bug_id: int,
+    bug_service: BugServiceDep,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    await bug_service.delete(bug_id)
+    return {"message": "Bug deleted successfully"}
