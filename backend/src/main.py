@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 import subprocess
 import sys
@@ -29,16 +30,20 @@ async def lifespan(app: FastAPI):
             
             if user_exists and not alembic_exists:
                 print("Database tables exist but alembic_version is missing. Stamping with initial revision...")
-                subprocess.run(
-                    [sys.executable, "-m", "alembic", "stamp", "997a64ea1549"],
-                    check=True
+                proc = await asyncio.create_subprocess_exec(
+                    sys.executable, "-m", "alembic", "stamp", "997a64ea1549"
                 )
+                await proc.wait()
+                if proc.returncode != 0:
+                    raise RuntimeError(f"Alembic stamp failed with exit status {proc.returncode}")
 
             # Executa as migrações do Alembic automaticamente no startup
-            subprocess.run(
-                [sys.executable, "-m", "alembic", "upgrade", "head"],
-                check=True
+            proc = await asyncio.create_subprocess_exec(
+                sys.executable, "-m", "alembic", "upgrade", "head"
             )
+            await proc.wait()
+            if proc.returncode != 0:
+                raise RuntimeError(f"Alembic upgrade failed with exit status {proc.returncode}")
         except Exception as e:
             print(f"Error running database migrations: {e}")
             raise e
