@@ -31,3 +31,17 @@ async def test_get_bugs(client: AsyncClient, auth_headers: dict, test_bug: dict)
     assert len(bugs) > 0
     assert any(b["id"] == test_bug["id"] for b in bugs)
 
+@pytest.mark.asyncio
+async def test_create_bug_with_timezone(client: AsyncClient, auth_headers: dict):
+    bug_data = {
+        "title": "CORS issue in production",
+        "description": "Access-Control-Allow-Origin missing",
+        "timestamp": "2026-06-24T00:24:06.107Z"
+    }
+    response = await client.post("/bugs/", json=bug_data, headers=auth_headers)
+    assert response.status_code == 200
+    bug = response.json()
+    assert bug["title"] == "CORS issue in production"
+    assert bug["timestamp"] is not None
+
+

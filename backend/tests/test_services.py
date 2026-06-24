@@ -88,7 +88,7 @@ async def test_user_service_delete(db_session: AsyncSession, service_user):
 async def test_bug_service_create(db_session: AsyncSession, service_user):
     bug_service = BugService(db_session)
     bug_in = BugIn(title="Svc Bug", description="Desc")
-    bug = await bug_service.create(bug_in, service_user.id)
+    bug = await bug_service.create(bug_in)
     assert bug.title == "Svc Bug"
     assert bug.description == "Desc"
 
@@ -96,7 +96,7 @@ async def test_bug_service_create(db_session: AsyncSession, service_user):
 async def test_bug_service_read_all(db_session: AsyncSession, service_user):
     bug_service = BugService(db_session)
     bug_in = BugIn(title="Svc Bug 2", description="Desc 2")
-    bug = await bug_service.create(bug_in, service_user.id)
+    bug = await bug_service.create(bug_in)
     bugs = await bug_service.read_all()
     assert len(bugs) > 0
     assert any(b.id == bug.id for b in bugs)

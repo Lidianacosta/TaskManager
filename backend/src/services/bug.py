@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import Annotated
 
 from fastapi import Depends
@@ -12,7 +13,10 @@ class BugService:
         self.session = session
 
     async def create(self, bug_in: BugIn) -> Bug:
-        bug = Bug(**bug_in.model_dump())
+        data = bug_in.model_dump()
+        if data.get("timestamp") and data["timestamp"].tzinfo is not None:
+            data["timestamp"] = data["timestamp"].astimezone(timezone.utc).replace(tzinfo=None)
+        bug = Bug(**data)
         self.session.add(bug)
         await self.session.commit()
         await self.session.refresh(bug)
