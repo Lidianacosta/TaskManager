@@ -70,3 +70,27 @@ async def test_delete_task(client: AsyncClient, auth_headers: dict, test_task: d
     tasks = response.json()
     assert not any(t["id"] == test_task["id"] for t in tasks)
 
+
+@pytest.mark.asyncio
+async def test_create_task_with_timezone(client: AsyncClient, auth_headers: dict):
+    task_data = {
+        "title": "Task with TZ due date",
+        "due_date": "2026-06-25T12:00:00.000Z"
+    }
+    response = await client.post("/tasks/", json=task_data, headers=auth_headers)
+    assert response.status_code == 200
+    task = response.json()
+    assert task["due_date"] is not None
+
+
+@pytest.mark.asyncio
+async def test_update_task_with_timezone(client: AsyncClient, auth_headers: dict, test_task: dict):
+    update_data = {
+        "due_date": "2026-06-26T18:30:00.000Z"
+    }
+    response = await client.patch(f"/tasks/{test_task['id']}", json=update_data, headers=auth_headers)
+    assert response.status_code == 200
+    task = response.json()
+    assert task["due_date"] is not None
+
+
