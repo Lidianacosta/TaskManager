@@ -20,6 +20,6 @@ vi.mock('@/hooks/use-toast', () => ({
 describe('ReportBugDialog', () => {
   it('renderiza o título do diálogo corretamente', () => {
     render(<ReportBugDialog open={true} onOpenChange={() => {}} />);
-    expect(screen.getByText('Reportar Bug')).toBeInTheDocument();
+    expect(screen.getByText('Solicitar Mudança')).toBeInTheDocument();
   });
 });
