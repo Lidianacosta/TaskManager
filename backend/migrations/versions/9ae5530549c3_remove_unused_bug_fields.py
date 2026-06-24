@@ -21,7 +21,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    bind = op.get_bind()
+    dialect = bind.dialect.name
     with op.batch_alter_table('bug', schema=None) as batch_op:
+        if dialect == 'postgresql':
+            batch_op.drop_constraint('bug_user_id_fkey', type_='foreignkey')
         batch_op.drop_column('user_id')
         batch_op.drop_column('status')
         batch_op.drop_column('priority')
