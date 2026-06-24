@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import { useCategories } from "@/hooks/use-categories";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -13,8 +14,9 @@ import {
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { TaskSheet } from "@/components/tasks/TaskSheet";
+import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 
 export default function Tasks() {
   const { data: tasks = [], isLoading } = useTasks();
@@ -26,6 +28,15 @@ export default function Tasks() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("create") === "true") {
+      setCreateDialogOpen(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
@@ -68,12 +79,22 @@ export default function Tasks() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Tarefas</h1>
-          <p className="text-muted-foreground text-sm">Gerencie e acompanhe seu trabalho ativo.</p>
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Tarefas</h1>
+            <p className="text-muted-foreground text-sm">Gerencie e acompanhe seu trabalho ativo.</p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="sm:hidden flex items-center gap-1.5">
+            <Plus className="h-4 w-4" />
+            Nova
+          </Button>
         </div>
-
+ 
         <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => setCreateDialogOpen(true)} className="hidden sm:flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nova Tarefa
+          </Button>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Status" />
@@ -202,6 +223,12 @@ export default function Tasks() {
         categories={categories}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
+      />
+
+      <CreateTaskDialog
+        categories={categories}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
       />
     </div>
   );

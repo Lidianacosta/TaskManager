@@ -17,6 +17,6 @@ vi.mock('@/hooks/use-toast', () => ({
 describe('Dashboard Page', () => {
   it('renders dashboard page', () => {
     renderWithProviders(<Dashboard />);
-    expect(screen.getByText(/Bom dia/i)).toBeInTheDocument();
+    expect(screen.getByText(/Olá/i)).toBeInTheDocument();
   });
 });
