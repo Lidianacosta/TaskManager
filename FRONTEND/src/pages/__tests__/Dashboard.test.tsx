@@ -13,6 +13,16 @@ vi.mock('@/hooks/use-bugs', () => ({
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 1, name: "Auth User", email: "authuser@example.com" },
+    logout: vi.fn(),
+    login: vi.fn(),
+    register: vi.fn(),
+    isAuthenticated: true,
+    isLoading: false,
+  }),
+}));
 
 describe('Dashboard Page', () => {
   it('renders dashboard page', () => {
