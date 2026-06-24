@@ -45,13 +45,17 @@ async def test_create_bug_with_timezone(client: AsyncClient):
     assert bug["timestamp"] is not None
 
 @pytest.mark.asyncio
-async def test_update_bug_status(client: AsyncClient, test_bug: dict):
+async def test_update_bug(client: AsyncClient, test_bug: dict):
     update_data = {
+        "title": "Database connection drop updated",
+        "description": "Connection drops randomly and is slow",
         "status": "in_progress"
     }
     response = await client.patch(f"/bugs/{test_bug['id']}", json=update_data)
     assert response.status_code == 200
     bug = response.json()
+    assert bug["title"] == "Database connection drop updated"
+    assert bug["description"] == "Connection drops randomly and is slow"
     assert bug["status"] == "in_progress"
 
 @pytest.mark.asyncio
